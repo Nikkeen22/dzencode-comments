@@ -126,16 +126,18 @@ const goToPage = (page: number) => {
   if (page < 1 || page > totalPages.value) return
   currentPage.value = page
   load()
+  // скролимо до списку коментарів а не на початок сторінки
+  document.querySelector('.comment-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
-const load = async () => {
-  loading.value = true
+const load = async (silent = false) => {
+  if (!silent) loading.value = true
   try {
     const res = await getComments({ page: currentPage.value, ordering: ordering.value })
     comments.value = res.data.results
     totalCount.value = res.data.count
   } finally {
-    loading.value = false
+    if (!silent) loading.value = false
   }
 }
 
@@ -146,13 +148,13 @@ const connectWS = () => {
   .replace(/^http/, 'ws') + '/ws/comments/'
   ws = new WebSocket(wsUrl)
   ws.onmessage = (e) => {
-    const data = JSON.parse(e.data)
-    if (data.type === 'new_comment') {
-      if (currentPage.value === 1 && ordering.value === '-created_at') {
-        load()
-      }
+  const data = JSON.parse(e.data)
+  if (data.type === 'new_comment') {
+    if (currentPage.value === 1 && ordering.value === '-created_at') {
+      load(true)
     }
   }
+}
   ws.onclose = () => setTimeout(connectWS, 3000)
 }
 
