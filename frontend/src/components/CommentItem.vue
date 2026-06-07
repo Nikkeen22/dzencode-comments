@@ -238,7 +238,8 @@ const onReplied = () => {
   cursor: default;
 }
 .lightbox-image {
-  max-width: 90vw;
+  width: min(90vw, 800px);
+  height: auto;
   max-height: 88vh;
   object-fit: contain;
   border-radius: 4px;

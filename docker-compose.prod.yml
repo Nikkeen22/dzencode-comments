@@ -78,7 +78,7 @@ services:
       dockerfile: Dockerfile.prod
     container_name: dzencode_vue_build
     volumes:
-      - ./frontend/dist:/usr/share/nginx/html
+      - ./frontend/dist:/output
 
   nginx:
     image: nginx:alpine
