@@ -204,7 +204,7 @@ const onReplied = () => {
 
 /* Мініатюра */
 .thumbnail-img {
-  max-width: 160px;
+  max-width: 80px;
   border-radius: 8px;
   border: 1px solid #e5e7eb;
   cursor: zoom-in;
@@ -238,7 +238,7 @@ const onReplied = () => {
   cursor: default;
 }
 .lightbox-image {
-  width: min(90vw, 800px);
+  width: min(90vw, 400px);
   height: auto;
   max-height: 88vh;
   object-fit: contain;
