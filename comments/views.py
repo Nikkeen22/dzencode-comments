@@ -51,7 +51,7 @@ class CommentViewSet(
             .prefetch_related('replies')
         )
 
-    @method_decorator(cache_page(10))  # кеш на 10 секунд тестовий
+    @method_decorator(cache_page(10))  # кеш на 10 секунд 
     @method_decorator(vary_on_headers('Accept', 'Accept-Language'))
     def list(self, request, *args, **kwargs):
         """GET /api/comments/ — кешований список коментарів."""

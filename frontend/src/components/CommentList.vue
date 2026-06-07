@@ -155,6 +155,7 @@ const connectWS = () => {
     }
   }
 }
+  ws.onerror = (e) => console.error('WS error:', e)
   ws.onclose = () => setTimeout(connectWS, 3000)
 }
 

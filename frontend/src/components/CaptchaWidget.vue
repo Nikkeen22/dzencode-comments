@@ -42,9 +42,13 @@ const error = ref('')
 const refresh = async () => {
   inputValue.value = ''
   error.value = ''
-  const res = await getCaptcha()
-  captchaKey.value = res.data.captcha_key
-  captchaImageUrl.value = res.data.captcha_image_url
+  try {
+    const res = await getCaptcha()
+    captchaKey.value = res.data.captcha_key
+    captchaImageUrl.value = res.data.captcha_image_url
+  } catch {
+    error.value = 'Не вдалося завантажити капчу. Спробуйте оновити сторінку.'
+  }
 }
 
 onMounted(refresh)

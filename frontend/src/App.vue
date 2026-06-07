@@ -46,7 +46,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { Sun as SunIcon, Moon as MoonIcon } from 'lucide-vue-next'
 import CommentForm from './components/CommentForm.vue'
 import CommentList from './components/CommentList.vue'

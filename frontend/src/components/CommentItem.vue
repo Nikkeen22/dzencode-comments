@@ -41,7 +41,7 @@
 
     <!-- Текст -->
     <div class="comment-text text-sm text-gray-700 dark:text-gray-200 mb-2 leading-relaxed pl-11"
-      v-html="comment.text" />
+      v-html="safeText" />
 
     <!-- Файл -->
     <div v-if="comment.attached_file" class="mb-2 pl-11">
@@ -111,7 +111,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import DOMPurify from 'dompurify'
 import { Reply as ReplyIcon, File as FileIcon } from 'lucide-vue-next'
 import type { Comment } from '../types/comment'
 import CommentForm from './CommentForm.vue'
@@ -121,6 +122,13 @@ defineOptions({ name: 'CommentItem' })
 
 const props = defineProps<{ comment: Comment }>()
 const emit = defineEmits<{ (e: 'refresh'): void }>()
+
+const safeText = computed(() =>
+  DOMPurify.sanitize(props.comment.text, {
+    ALLOWED_TAGS: ['a', 'code', 'i', 'strong'],
+    ALLOWED_ATTR: ['href', 'title'],
+  })
+)
 
 const showReplyForm = ref(false)
 const lightboxUrl = ref<string | null>(null)
@@ -135,7 +143,6 @@ const formatDate = (iso: string) => {
 
 const isImage = (url: string) => /\.(jpg|jpeg|png|gif|webp)$/i.test(url)
 
-// Використовуємо BASE_URL з env замість hardcoded localhost
 const fullUrl = (path: string) =>
   path.startsWith('http') ? path : `${BASE_URL}${path}`
 

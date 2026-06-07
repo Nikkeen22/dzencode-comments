@@ -59,7 +59,7 @@ class Comment(models.Model):
         validators=[validate_user_name],
     )
     email = models.EmailField()
-    homepage = models.URLField(blank=True, null=True)
+    homepage = models.URLField(blank=True, default='')
     text = models.TextField()
     parent = models.ForeignKey(
         'self',

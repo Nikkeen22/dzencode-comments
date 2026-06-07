@@ -439,6 +439,7 @@ const onEditorInput = () => {
 const onFileChange = (e: Event) => {
   const file = (e.target as HTMLInputElement).files?.[0] || null
   errors.value.attached_file = ''
+  if (previewImageUrl.value) URL.revokeObjectURL(previewImageUrl.value)
   previewImageUrl.value = null
   if (!file) return
   const ext = file.name.split('.').pop()?.toLowerCase()

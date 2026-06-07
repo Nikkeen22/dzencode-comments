@@ -1,6 +1,6 @@
 import re
 from rest_framework import serializers
-from .models import Comment, validate_attached_file
+from .models import Comment, validate_attached_file, validate_user_name as validate_user_name_field
 from captcha.models import CaptchaStore
 from django.core.exceptions import ValidationError as DjangoValidationError
 
@@ -87,10 +87,10 @@ class CommentSerializer(serializers.ModelSerializer):
         return []
 
     def validate_user_name(self, value):
-        if not re.match(r'^[a-zA-Z0-9]+$', value):
-            raise serializers.ValidationError(
-                'User Name може містити лише латинські букви та цифри.'
-            )
+        try:
+            validate_user_name_field(value)
+        except DjangoValidationError as e:
+            raise serializers.ValidationError(e.message)
         return value
 
     def validate_text(self, value):

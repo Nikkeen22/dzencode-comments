@@ -130,7 +130,8 @@ python -c "from django.core.management.utils import get_random_secret_key; print
 ## Архітектура
 
 ```
-docker compose up --build запускає 6 контейнерів:
+docker compose up --build запускає 5 контейнерів (локальна розробка):
+       > На production сервері додатково працює Nginx як reverse proxy на порту 80.
 
 ┌─────────────────┐     ┌──────────────────┐
 │  Nginx (80)     │────▶│  Django/Daphne   │
