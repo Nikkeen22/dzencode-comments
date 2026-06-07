@@ -49,8 +49,7 @@
         v-if="isImage(comment.attached_file)"
         :src="fullUrl(comment.attached_file)"
         alt="attachment"
-        class="max-w-[160px] rounded-lg border border-gray-200 dark:border-gray-600 cursor-zoom-in
-               hover:opacity-90 hover:scale-[1.02] transition-all duration-200 shadow-sm"
+        class="thumbnail-img"
         @click="openLightbox(fullUrl(comment.attached_file))"
       />
       <a v-else :href="fullUrl(comment.attached_file)" target="_blank"
@@ -189,10 +188,7 @@ const onReplied = () => {
 </script>
 
 <style scoped>
-.comment-text :deep(a) {
-  color: #2563eb;
-  text-decoration: underline;
-}
+.comment-text :deep(a) { color: #2563eb; text-decoration: underline; }
 .comment-text :deep(a:hover) { color: #1d4ed8; }
 .comment-text :deep(code) {
   background: #dbeafe;
@@ -206,6 +202,21 @@ const onReplied = () => {
 .comment-text :deep(strong) { font-weight: 700; }
 .comment-text :deep(i) { font-style: italic; }
 
+/* Мініатюра */
+.thumbnail-img {
+  max-width: 160px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  cursor: zoom-in;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  transition: opacity 0.2s, transform 0.2s;
+}
+.thumbnail-img:hover {
+  opacity: 0.9;
+  transform: scale(1.02);
+}
+
+/* Lightbox */
 .lightbox-overlay {
   position: fixed;
   inset: 0;
