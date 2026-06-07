@@ -24,7 +24,9 @@
       <div>
         <label class="form-label text-sm font-medium text-gray-700">Home page</label>
         <input v-model="form.homepage" type="url" placeholder="https://example.com"
-          class="form-input mt-1 w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition" />
+          class="form-input mt-1 w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+          :class="{ 'border-red-500': errors.homepage }" />
+        <p v-if="errors.homepage" class="text-red-500 text-xs mt-1">{{ errors.homepage }}</p>
       </div>
 
       <div>
@@ -471,6 +473,9 @@ const validate = () => {
     errors.value.email = "Обов'язкове поле"
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.value.email)) {
     errors.value.email = 'Невірний формат email'
+  }
+  if (form.value.homepage && !/^https?:\/\/.+/.test(form.value.homepage)) {
+    errors.value.homepage = 'Невірний формат URL (має починатись з http:// або https://)'
   }
   const plainText = form.value.text.replace(/<[^>]*>/g, '').replace(/\u200B/g, '').trim()
   if (!plainText) errors.value.text = "Обов'язкове поле"
