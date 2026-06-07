@@ -76,6 +76,6 @@ onMounted(() => {
 
 const onNewComment = () => {
   showForm.value = false
-  listRef.value?.load()
+  listRef.value?.load(true)
 }
 </script>
