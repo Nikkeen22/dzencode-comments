@@ -253,4 +253,10 @@ Authorization: Bearer eyJ...
 Містить:
 - Таблицю `comments_comment` з усіма полями
 - Таблицю `captcha_captchastore`
+<<<<<<< HEAD
 - Foreign Key `fk_comment_parent`: `parent_id → id` (`ON DELETE CASCADE`)
+=======
+- Foreign Key `fk_comment_parent`: `parent_id → id` (`ON DELETE CASCADE`)
+
+---
+>>>>>>> d76adaf681f46b7821e4fa0a85474d274012aa25
