@@ -32,6 +32,7 @@ services:
     container_name: dzencode_django_app
     command: >
       sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
              daphne -b 0.0.0.0 -p 8000 core.asgi:application"
     volumes:
       - .:/app
