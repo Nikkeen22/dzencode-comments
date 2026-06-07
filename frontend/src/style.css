@@ -1,0 +1,119 @@
+@import "tailwindcss";
+
+* {
+  font-family: 'Nunito', sans-serif;
+}
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Нікнейми в темній темі */
+.dark .username {
+  color: #e5e7eb;
+}
+
+/* Кнопки сортування в темній темі */
+.dark .sort-btn {
+  background: #374151;
+  border-color: #4b5563;
+  color: #e5e7eb;
+}
+
+.dark .sort-btn:hover {
+  background: #4b5563;
+}
+
+.dark .sort-btn-active {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+  color: white;
+}
+
+/* Карточка коментарів в темній темі */
+.dark .comment-card {
+  background: #1f2937;
+  color: #949494;
+}
+
+/* Форма в темній темі */
+.dark .form-card {
+  background: #1f2937;
+  color: #e5e7eb;
+}
+
+.dark .form-input {
+  background: #374151;
+  border-color: #4b5563;
+  color: #e5e7eb;
+}
+
+.dark .form-input::placeholder {
+  color: #9ca3af;
+}
+
+/* Кнопка сортування на світлій темі */
+.sort-btn {
+  background: #f9fafb;
+  border-color: #d1d5db;
+  color: #374151;
+}
+
+.sort-btn:hover {
+  background: #e5e7eb;
+}
+
+.sort-btn-active {
+  background: #2563eb !important;
+  border-color: #2563eb !important;
+  color: white !important;
+}
+
+/* Лейбли форми в темній темі */
+.dark .form-label {
+  color: #d1d5db;
+}
+
+/* Попередній перегляд */
+.dark .preview-box {
+  background: #374151;
+  border-color: #4b5563;
+  color: #e5e7eb;
+}
+
+.dark .preview-box p {
+  color: #9ca3af;
+}
+
+/* Текст попереднього перегляду */
+.preview-text {
+  color: #1f2937;
+}
+
+.dark .preview-text {
+  color: #e5e7eb;
+}
+
+.preview-text a {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+.preview-text code {
+  background: #e5e7eb;
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.85em;
+}
+
+.dark .preview-text code {
+  background: #4b5563;
+  color: #e5e7eb;
+}
+
+.preview-text strong {
+  font-weight: 700;
+}
+
+.preview-text i {
+  font-style: italic;
+}
