@@ -27,7 +27,7 @@
         v-for="comment in comments"
         :key="comment.id"
         :comment="comment"
-        @refresh="load"
+        @refresh="() => load(true)"
       />
     </div>
 
