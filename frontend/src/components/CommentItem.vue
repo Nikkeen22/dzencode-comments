@@ -49,7 +49,7 @@
         v-if="isImage(comment.attached_file)"
         :src="fullUrl(comment.attached_file)"
         alt="attachment"
-        class="max-w-xs rounded-xl border border-gray-200 dark:border-gray-600 cursor-zoom-in
+        class="max-w-sm rounded-xl border border-gray-200 dark:border-gray-600 cursor-zoom-in
                hover:opacity-90 hover:scale-[1.02] transition-all duration-200 shadow-sm"
         @click="openLightbox(fullUrl(comment.attached_file))"
       />
@@ -90,45 +90,27 @@
     </div>
   </div>
 
-  <!-- Lightbox -->
-  <Transition
-    enter-active-class="transition-all duration-300 ease-out"
-    enter-from-class="opacity-0"
-    enter-to-class="opacity-100"
-    leave-active-class="transition-all duration-200 ease-in"
-    leave-from-class="opacity-100"
-    leave-to-class="opacity-0"
-  >
+  <!-- Lightbox (lightbox2 style) -->
+  <Teleport to="body">
     <div
-      v-if="lightboxUrl"
-      class="fixed inset-0 bg-black/85 flex items-center justify-center z-50 cursor-zoom-out backdrop-blur-sm"
-      @click="lightboxUrl = null"
-      @keydown.esc="lightboxUrl = null"
+      v-if="lightboxVisible"
+      class="lightbox-overlay"
+      :class="{ 'lightbox-overlay--visible': lightboxActive }"
+      @click="closeLightbox"
     >
-      <!-- Кнопка закрити -->
-      <button
-        class="absolute top-4 right-4 text-white/70 hover:text-white text-3xl leading-none transition-colors"
-        @click="lightboxUrl = null"
-      >✕</button>
+      <button class="lightbox-close" @click="closeLightbox">✕</button>
 
-      <Transition
-        enter-active-class="transition-all duration-300 ease-out"
-        enter-from-class="opacity-0 scale-75"
-        enter-to-class="opacity-100 scale-100"
-        leave-active-class="transition-all duration-200 ease-in"
-        leave-from-class="opacity-100 scale-100"
-        leave-to-class="opacity-0 scale-75"
-      >
+      <div class="lightbox-container" @click.stop>
         <img
           v-if="lightboxUrl"
           :src="lightboxUrl"
           alt="preview"
-          class="max-w-[92vw] max-h-[92vh] rounded-2xl shadow-2xl object-contain"
-          @click.stop
+          class="lightbox-image"
+          :class="{ 'lightbox-image--visible': imageActive }"
         />
-      </Transition>
+      </div>
     </div>
-  </Transition>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
@@ -153,17 +135,46 @@ const safeText = computed(() =>
 
 const showReplyForm = ref(false)
 const lightboxUrl = ref<string | null>(null)
+const lightboxVisible = ref(false)
+const lightboxActive = ref(false)
+const imageActive = ref(false)
 
 const openLightbox = (url: string) => {
   lightboxUrl.value = url
+  lightboxVisible.value = true
+  document.body.style.overflow = 'hidden'
+
+  // Спочатку з'являється фон (як у lightbox2)
+  requestAnimationFrame(() => {
+    lightboxActive.value = true
+    // Потім зображення з невеликою затримкою
+    setTimeout(() => {
+      imageActive.value = true
+    }, 150)
+  })
 }
 
-const closeLightbox = (e: KeyboardEvent) => {
-  if (e.key === 'Escape') lightboxUrl.value = null
+const closeLightbox = () => {
+  imageActive.value = false
+  setTimeout(() => {
+    lightboxActive.value = false
+    setTimeout(() => {
+      lightboxVisible.value = false
+      lightboxUrl.value = null
+      document.body.style.overflow = ''
+    }, 400)
+  }, 200)
 }
 
-onMounted(() => window.addEventListener('keydown', closeLightbox))
-onUnmounted(() => window.removeEventListener('keydown', closeLightbox))
+const onKeydown = (e: KeyboardEvent) => {
+  if (e.key === 'Escape' && lightboxVisible.value) closeLightbox()
+}
+
+onMounted(() => window.addEventListener('keydown', onKeydown))
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKeydown)
+  document.body.style.overflow = ''
+})
 
 const formatDate = (iso: string) => {
   const d = new Date(iso)
@@ -201,4 +212,61 @@ const onReplied = () => {
 }
 .comment-text :deep(strong) { font-weight: 700; }
 .comment-text :deep(i) { font-style: italic; }
+
+/* Lightbox */
+.lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  cursor: zoom-out;
+  transition: background 0.4s ease;
+}
+
+.lightbox-overlay--visible {
+  background: rgba(0, 0, 0, 0.85);
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 28px;
+  line-height: 1;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s;
+  z-index: 10000;
+}
+.lightbox-close:hover {
+  color: #fff;
+}
+
+.lightbox-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+}
+
+.lightbox-image {
+  max-width: 90vw;
+  max-height: 88vh;
+  object-fit: contain;
+  border-radius: 4px;
+  box-shadow: 0 4px 60px rgba(0, 0, 0, 0.8);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.lightbox-image--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
 </style>
