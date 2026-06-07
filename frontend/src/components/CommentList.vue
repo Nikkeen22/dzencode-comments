@@ -151,7 +151,7 @@ const connectWS = () => {
   const data = JSON.parse(e.data)
   if (data.type === 'new_comment') {
     if (currentPage.value === 1 && ordering.value === '-created_at') {
-      load(true)
+      setTimeout(() => load(true), 500)
     }
   }
 }
