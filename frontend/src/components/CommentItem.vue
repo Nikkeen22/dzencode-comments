@@ -49,9 +49,9 @@
         v-if="isImage(comment.attached_file)"
         :src="fullUrl(comment.attached_file)"
         alt="attachment"
-        class="max-w-xs rounded-xl border border-gray-200 dark:border-gray-600 cursor-pointer
+        class="max-w-xs rounded-xl border border-gray-200 dark:border-gray-600 cursor-zoom-in
                hover:opacity-90 hover:scale-[1.02] transition-all duration-200 shadow-sm"
-        @click="lightboxUrl = fullUrl(comment.attached_file)"
+        @click="openLightbox(fullUrl(comment.attached_file))"
       />
       <a v-else :href="fullUrl(comment.attached_file)" target="_blank"
         class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg
@@ -92,26 +92,47 @@
 
   <!-- Lightbox -->
   <Transition
-    enter-active-class="transition-opacity duration-200"
+    enter-active-class="transition-all duration-300 ease-out"
     enter-from-class="opacity-0"
     enter-to-class="opacity-100"
-    leave-active-class="transition-opacity duration-200"
+    leave-active-class="transition-all duration-200 ease-in"
     leave-from-class="opacity-100"
     leave-to-class="opacity-0"
   >
     <div
       v-if="lightboxUrl"
-      class="fixed inset-0 bg-black/75 flex items-center justify-center z-50 cursor-zoom-out"
+      class="fixed inset-0 bg-black/85 flex items-center justify-center z-50 cursor-zoom-out backdrop-blur-sm"
       @click="lightboxUrl = null"
+      @keydown.esc="lightboxUrl = null"
     >
-      <img :src="lightboxUrl" alt="preview"
-        class="max-w-[90vw] max-h-[90vh] rounded-2xl shadow-2xl" />
+      <!-- Кнопка закрити -->
+      <button
+        class="absolute top-4 right-4 text-white/70 hover:text-white text-3xl leading-none transition-colors"
+        @click="lightboxUrl = null"
+      >✕</button>
+
+      <Transition
+        enter-active-class="transition-all duration-300 ease-out"
+        enter-from-class="opacity-0 scale-75"
+        enter-to-class="opacity-100 scale-100"
+        leave-active-class="transition-all duration-200 ease-in"
+        leave-from-class="opacity-100 scale-100"
+        leave-to-class="opacity-0 scale-75"
+      >
+        <img
+          v-if="lightboxUrl"
+          :src="lightboxUrl"
+          alt="preview"
+          class="max-w-[92vw] max-h-[92vh] rounded-2xl shadow-2xl object-contain"
+          @click.stop
+        />
+      </Transition>
     </div>
   </Transition>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import DOMPurify from 'dompurify'
 import { Reply as ReplyIcon, File as FileIcon } from 'lucide-vue-next'
 import type { Comment } from '../types/comment'
@@ -132,6 +153,17 @@ const safeText = computed(() =>
 
 const showReplyForm = ref(false)
 const lightboxUrl = ref<string | null>(null)
+
+const openLightbox = (url: string) => {
+  lightboxUrl.value = url
+}
+
+const closeLightbox = (e: KeyboardEvent) => {
+  if (e.key === 'Escape') lightboxUrl.value = null
+}
+
+onMounted(() => window.addEventListener('keydown', closeLightbox))
+onUnmounted(() => window.removeEventListener('keydown', closeLightbox))
 
 const formatDate = (iso: string) => {
   const d = new Date(iso)
