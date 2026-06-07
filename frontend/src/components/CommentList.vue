@@ -16,7 +16,7 @@
       </button>
     </div>
 
-    <div v-if="loading" class="text-center text-gray-400 py-10">Завантаження...</div>
+    <div v-if="loading && comments.length === 0" class="text-center text-gray-400 py-10">Завантаження...</div>
 
     <div v-else-if="comments.length === 0" class="text-center text-gray-400 py-10">
       Коментарів ще немає. Будь першим!
