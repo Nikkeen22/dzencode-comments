@@ -2,6 +2,12 @@
 
 SPA-додаток для коментарів із вкладеними відповідями, real-time оновленням через WebSocket, CAPTCHA та підтримкою файлів.
 
+## 🌐 Живий сайт
+
+**http://167.233.30.124**
+
+---
+
 ## Стек технологій
 
 **Бекенд:**
@@ -105,8 +111,8 @@ docker compose down -v
 # Локально
 VITE_API_URL=http://localhost:8000
 
-# Production (замінити на реальний домен)
-VITE_API_URL=https://your-domain.com
+# Production (замінити на реальний домен/IP)
+VITE_API_URL=http://167.233.30.124
 ```
 
 > **Важливо:** WebSocket URL автоматично будується з `VITE_API_URL`:
@@ -124,11 +130,11 @@ python -c "from django.core.management.utils import get_random_secret_key; print
 ## Архітектура
 
 ```
-docker compose up --build запускає 5 контейнерів:
+docker compose up --build запускає 6 контейнерів:
 
 ┌─────────────────┐     ┌──────────────────┐
-│  Vue 3 (5173)   │────▶│  Django/Daphne   │
-│   фронтенд      │  WS │  (8000)          │
+│  Nginx (80)     │────▶│  Django/Daphne   │
+│  Vue 3 (SPA)    │  WS │  (8000)          │
 └─────────────────┘     └────────┬─────────┘
                                  │
                     ┌────────────┼────────────┐
@@ -139,6 +145,7 @@ docker compose up --build запускає 5 контейнерів:
              └──────────┘ └──────────┘ └──────────┘
 ```
 
+- **Nginx** — роздає збілдований Vue SPA та проксіює запити до Django
 - **PostgreSQL** — зберігає коментарі
 - **Redis** — черга Celery + кеш + WebSocket channel layer
 - **Celery worker** — асинхронно відправляє WebSocket повідомлення після створення коментаря
@@ -165,8 +172,9 @@ dzencode-comments/
 │   ├── routing.py               # WebSocket маршрути
 │   └── urls.py                  # REST маршрути
 ├── frontend/                    # Vue 3 SPA
-│   ├── Dockerfile
-│   ├── .env                     # VITE_API_URL (локально: http://localhost:8000)
+│   ├── Dockerfile               # Dev dockerfile
+│   ├── Dockerfile.prod          # Production dockerfile (збірка + nginx)
+│   ├── .env                     # VITE_API_URL
 │   └── src/
 │       ├── components/
 │       │   ├── CommentForm.vue
@@ -175,6 +183,7 @@ dzencode-comments/
 │       │   └── CaptchaWidget.vue
 │       ├── api/comments.ts
 │       └── types/comment.ts
+├── nginx.conf                   # Nginx конфігурація для production
 ├── schema.mwb                   # Схема БД (MySQL Workbench)
 ├── Dockerfile
 ├── docker-compose.yml
@@ -203,28 +212,6 @@ dzencode-comments/
 
 ---
 
-## JWT авторизація
-
-Отримати токен через Django admin користувача:
-```bash
-POST http://localhost:8000/api/auth/token/
-Content-Type: application/json
-
-{"username": "admin", "password": "пароль"}
-```
-
-Відповідь:
-```json
-{"access": "eyJ...", "refresh": "eyJ..."}
-```
-
-Використання токена:
-```
-Authorization: Bearer eyJ...
-```
-
----
-
 ## Змінні середовища (бекенд)
 
 | Змінна | Опис |
@@ -240,7 +227,7 @@ Authorization: Bearer eyJ...
 
 | Змінна | Опис |
 |--------|------|
-| `VITE_API_URL` | Базовий URL бекенду (напр. `http://localhost:8000`). WebSocket будується автоматично: `http` → `ws`, `https` → `wss` |
+| `VITE_API_URL` | Базовий URL бекенду. WebSocket будується автоматично: `http` → `ws`, `https` → `wss` |
 
 ---
 
@@ -253,10 +240,4 @@ Authorization: Bearer eyJ...
 Містить:
 - Таблицю `comments_comment` з усіма полями
 - Таблицю `captcha_captchastore`
-<<<<<<< HEAD
 - Foreign Key `fk_comment_parent`: `parent_id → id` (`ON DELETE CASCADE`)
-=======
-- Foreign Key `fk_comment_parent`: `parent_id → id` (`ON DELETE CASCADE`)
-
----
->>>>>>> d76adaf681f46b7821e4fa0a85474d274012aa25
