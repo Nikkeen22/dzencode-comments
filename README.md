@@ -130,12 +130,25 @@ python -c "from django.core.management.utils import get_random_secret_key; print
 ## Архітектура
 
 ```
-docker compose up --build запускає 5 контейнерів (локальна розробка):
-       > На production сервері додатково працює Nginx як reverse proxy на порту 80.
+### Локальна розробка (docker-compose.yml) — 5 контейнерів:
+
+┌─────────────────┐     ┌──────────────────┐
+│  Vue 3 (5173)   │────▶│  Django/Daphne   │
+│  Vite dev server│  WS │  (8000)          │
+└─────────────────┘     └────────┬─────────┘
+                                 │
+                    ┌────────────┼────────────┐
+                    ▼            ▼            ▼
+             ┌──────────┐ ┌──────────┐ ┌──────────┐
+             │PostgreSQL│ │  Redis   │ │  Celery  │
+             │  (5432)  │ │  (6379)  │ │  worker  │
+             └──────────┘ └──────────┘ └──────────┘
+
+### Production (docker-compose.prod.yml) — 6 контейнерів:
 
 ┌─────────────────┐     ┌──────────────────┐
 │  Nginx (80)     │────▶│  Django/Daphne   │
-│  Vue 3 (SPA)    │  WS │  (8000)          │
+│  Vue 3 SPA      │  WS │  (8000)          │
 └─────────────────┘     └────────┬─────────┘
                                  │
                     ┌────────────┼────────────┐
@@ -188,6 +201,7 @@ dzencode-comments/
 ├── schema.mwb                   # Схема БД (MySQL Workbench)
 ├── Dockerfile
 ├── docker-compose.yml
+├── docker-compose.prod.yml
 └── requirements.txt
 ```
 
