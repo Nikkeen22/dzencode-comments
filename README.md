@@ -210,13 +210,3 @@ Authorization: Bearer eyJ...
 - Foreign Key `fk_comment_parent`: `parent_id → id` (`ON DELETE CASCADE`)
 
 ---
-
-## Самоперевірка перед здачею
-
-```bash
-git clone https://github.com/Nikkeen22/dzencode-comments.git
-cd dzencode-comments
-docker compose up --build
-```
-
-Відкрий http://localhost:5173 і перевір: форму, CAPTCHA, відповіді, сортування, файли, lightbox, real-time WebSocket.
