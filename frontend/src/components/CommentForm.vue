@@ -130,7 +130,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, nextTick, computed } from 'vue'
-import DOMPurify from 'dompurify'
+import DOMPurify, { type Config as DOMPurifyConfig } from 'dompurify'
 import {
   Italic as ItalicIcon,
   Bold as BoldIcon,
@@ -143,7 +143,7 @@ import CaptchaWidget from './CaptchaWidget.vue'
 import { createComment } from '../api/comments'
 
 // Дозволені теги для DOMPurify — тільки ті що дозволяє ТЗ
-const PURIFY_CONFIG: DOMPurify.Config = {
+const PURIFY_CONFIG: DOMPurifyConfig = {
   ALLOWED_TAGS: ['a', 'code', 'i', 'strong'],
   ALLOWED_ATTR: ['href', 'title'],
 }

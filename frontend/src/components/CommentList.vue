@@ -142,7 +142,9 @@ const load = async () => {
 let ws: WebSocket | null = null
 
 const connectWS = () => {
-  ws = new WebSocket('ws://localhost:8000/ws/comments/')
+  const wsUrl = (import.meta.env.VITE_API_URL as string)
+  .replace(/^http/, 'ws') + '/ws/comments/'
+  ws = new WebSocket(wsUrl)
   ws.onmessage = (e) => {
     const data = JSON.parse(e.data)
     if (data.type === 'new_comment') {
