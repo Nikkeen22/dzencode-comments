@@ -40,16 +40,16 @@
     </div>
 
     <!-- Текст -->
-    <div class="comment-text text-sm text-gray-700 dark:text-gray-200 mb-2 leading-relaxed pl-11"
+    <div class="comment-text text-sm text-gray-700 dark:text-gray-200 mb-2 leading-relaxed"
       v-html="safeText" />
 
     <!-- Файл -->
-    <div v-if="comment.attached_file" class="mb-2 pl-11">
+    <div v-if="comment.attached_file" class="mb-2">
       <img
         v-if="isImage(comment.attached_file)"
         :src="fullUrl(comment.attached_file)"
         alt="attachment"
-        class="max-w-sm rounded-xl border border-gray-200 dark:border-gray-600 cursor-zoom-in
+        class="max-w-[160px] rounded-lg border border-gray-200 dark:border-gray-600 cursor-zoom-in
                hover:opacity-90 hover:scale-[1.02] transition-all duration-200 shadow-sm"
         @click="openLightbox(fullUrl(comment.attached_file))"
       />
@@ -90,7 +90,7 @@
     </div>
   </div>
 
-  <!-- Lightbox (lightbox2 style) -->
+  <!-- Lightbox -->
   <Teleport to="body">
     <div
       v-if="lightboxVisible"
@@ -98,8 +98,6 @@
       :class="{ 'lightbox-overlay--visible': lightboxActive }"
       @click="closeLightbox"
     >
-      <button class="lightbox-close" @click="closeLightbox">✕</button>
-
       <div class="lightbox-container" @click.stop>
         <img
           v-if="lightboxUrl"
@@ -143,14 +141,9 @@ const openLightbox = (url: string) => {
   lightboxUrl.value = url
   lightboxVisible.value = true
   document.body.style.overflow = 'hidden'
-
-  // Спочатку з'являється фон (як у lightbox2)
   requestAnimationFrame(() => {
     lightboxActive.value = true
-    // Потім зображення з невеликою затримкою
-    setTimeout(() => {
-      imageActive.value = true
-    }, 150)
+    setTimeout(() => { imageActive.value = true }, 150)
   })
 }
 
@@ -213,7 +206,6 @@ const onReplied = () => {
 .comment-text :deep(strong) { font-weight: 700; }
 .comment-text :deep(i) { font-style: italic; }
 
-/* Lightbox */
 .lightbox-overlay {
   position: fixed;
   inset: 0;
@@ -225,35 +217,15 @@ const onReplied = () => {
   cursor: zoom-out;
   transition: background 0.4s ease;
 }
-
 .lightbox-overlay--visible {
   background: rgba(0, 0, 0, 0.85);
 }
-
-.lightbox-close {
-  position: absolute;
-  top: 20px;
-  right: 24px;
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 28px;
-  line-height: 1;
-  background: none;
-  border: none;
-  cursor: pointer;
-  transition: color 0.2s;
-  z-index: 10000;
-}
-.lightbox-close:hover {
-  color: #fff;
-}
-
 .lightbox-container {
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: default;
 }
-
 .lightbox-image {
   max-width: 90vw;
   max-height: 88vh;
@@ -264,7 +236,6 @@ const onReplied = () => {
   transform: translateY(8px);
   transition: opacity 0.4s ease, transform 0.4s ease;
 }
-
 .lightbox-image--visible {
   opacity: 1;
   transform: translateY(0);
