@@ -144,7 +144,7 @@ const load = async (silent = false) => {
 let ws: WebSocket | null = null
 
 const connectWS = () => {
-  const wsUrl = (import.meta.env.VITE_API_URL as string)
+  const wsUrl = ((import.meta.env.VITE_API_URL as string) || 'http://localhost:8000')
   .replace(/^http/, 'ws') + '/ws/comments/'
   ws = new WebSocket(wsUrl)
   ws.onmessage = (e) => {
