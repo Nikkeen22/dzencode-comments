@@ -331,6 +331,10 @@ const applyLink = () => {
   if (!url) { closeLinkPanel(); return }
   editor.value?.chain().focus().setLink({ href: url, title: url }).run()
   closeLinkPanel()
+  // Після вставки переміщуємо курсор за посилання і знімаємо link mark
+  nextTick(() => {
+    editor.value?.chain().focus().selectTextblockEnd().unsetLink().run()
+  })
 }
 
 // ─── Зняти форматування ───────────────────────────────────────────────────────
