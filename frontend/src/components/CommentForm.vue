@@ -270,10 +270,11 @@ const editor = useEditor({
     CustomItalic,            // ← наш italic що генерує <i>
     Link.configure({
       openOnClick: false,
+      autolink: false,        // ← додай
       HTMLAttributes: {
-        target: '_blank',
-        rel: 'noopener noreferrer',
         title: '',
+        target: null,         // ← прибирає target="_blank"
+        rel: null,            // ← прибирає rel="noopener..."
       },
     }),
   ],
@@ -336,11 +337,19 @@ const closeLinkPanel = () => {
 const applyLink = () => {
   const url = linkUrl.value.trim()
   if (!url) { closeLinkPanel(); return }
-  editor.value?.chain().focus().setLink({ href: url, title: url }).run()
+  editor.value?.chain()
+    .focus()
+    .setLink({ href: url, title: url, target: null, rel: null })
+    .run()
   closeLinkPanel()
-  // Після вставки переміщуємо курсор за посилання і знімаємо link mark
+  // Переміщуємо курсор після посилання і знімаємо mark
   nextTick(() => {
-    editor.value?.chain().focus().selectTextblockEnd().unsetLink().run()
+    const { to } = editor.value?.state.selection ?? { to: 0 }
+    editor.value?.chain()
+      .focus()
+      .setTextSelection(to)
+      .unsetMark('link')
+      .run()
   })
 }
 
