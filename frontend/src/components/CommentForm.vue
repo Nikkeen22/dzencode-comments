@@ -314,11 +314,18 @@ onBeforeUnmount(() => {
 // ─── Посилання ────────────────────────────────────────────────────────────────
 
 const openLinkPanel = () => {
+  // Зберігаємо поточне виділення до того як редактор втратить фокус
+  editor.value?.chain().focus().run()
+  const { from, to } = editor.value?.state.selection ?? { from: 0, to: 0 }
   showLinkInput.value = true
   linkUrl.value = editor.value?.isActive('link')
     ? (editor.value.getAttributes('link').href as string) || ''
     : ''
   nextTick(() => linkInputRef.value?.focus())
+  // Відновлюємо виділення після того як інпут отримав фокус
+  nextTick(() => {
+    editor.value?.chain().setTextSelection({ from, to }).run()
+  })
 }
 
 const closeLinkPanel = () => {
