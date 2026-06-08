@@ -32,34 +32,45 @@
       <div>
         <label class="form-label text-sm font-medium text-gray-700">Текст *</label>
 
+        <!-- Кнопки форматування -->
         <div class="flex flex-wrap gap-2 mt-1 mb-1">
           <button type="button"
-            @pointerdown.prevent="applyTag('i')"
-            class="form-tag-btn flex items-center gap-1 px-3 py-1.5 text-xs border rounded-lg hover:scale-105 active:scale-95 transition-all duration-150 italic font-medium">
+            @mousedown.prevent="editor?.chain().focus().toggleItalic().run()"
+            @touchstart.prevent="editor?.chain().focus().toggleItalic().run()"
+            :class="['form-tag-btn flex items-center gap-1 px-3 py-1.5 text-xs border rounded-lg hover:scale-105 active:scale-95 transition-all duration-150 italic font-medium',
+              editor?.isActive('italic') ? 'bg-blue-600 text-white border-blue-600' : '']">
             <ItalicIcon :size="12" /> Курсив
           </button>
           <button type="button"
-            @pointerdown.prevent="applyTag('strong')"
-            class="form-tag-btn flex items-center gap-1 px-3 py-1.5 text-xs border rounded-lg hover:scale-105 active:scale-95 transition-all duration-150 font-bold">
+            @mousedown.prevent="editor?.chain().focus().toggleBold().run()"
+            @touchstart.prevent="editor?.chain().focus().toggleBold().run()"
+            :class="['form-tag-btn flex items-center gap-1 px-3 py-1.5 text-xs border rounded-lg hover:scale-105 active:scale-95 transition-all duration-150 font-bold',
+              editor?.isActive('bold') ? 'bg-blue-600 text-white border-blue-600' : '']">
             <BoldIcon :size="12" /> Жирний
           </button>
           <button type="button"
-            @pointerdown.prevent="applyTag('code')"
-            class="form-tag-btn flex items-center gap-1 px-3 py-1.5 text-xs border rounded-lg hover:scale-105 active:scale-95 transition-all duration-150 font-mono">
+            @mousedown.prevent="editor?.chain().focus().toggleCode().run()"
+            @touchstart.prevent="editor?.chain().focus().toggleCode().run()"
+            :class="['form-tag-btn flex items-center gap-1 px-3 py-1.5 text-xs border rounded-lg hover:scale-105 active:scale-95 transition-all duration-150 font-mono',
+              editor?.isActive('code') ? 'bg-blue-600 text-white border-blue-600' : '']">
             <CodeIcon :size="12" /> Код
           </button>
           <button type="button"
-            @pointerdown.prevent="openLinkPanel"
-            class="form-tag-btn flex items-center gap-1 px-3 py-1.5 text-xs border rounded-lg hover:scale-105 active:scale-95 transition-all duration-150">
+            @mousedown.prevent="openLinkPanel"
+            @touchstart.prevent="openLinkPanel"
+            :class="['form-tag-btn flex items-center gap-1 px-3 py-1.5 text-xs border rounded-lg hover:scale-105 active:scale-95 transition-all duration-150',
+              editor?.isActive('link') ? 'bg-blue-600 text-white border-blue-600' : '']">
             <LinkIcon :size="12" /> Посилання
           </button>
           <button type="button"
-            @pointerdown.prevent="clearFormat"
+            @mousedown.prevent="clearFormat"
+            @touchstart.prevent="clearFormat"
             class="form-tag-btn flex items-center gap-1 px-3 py-1.5 text-xs border rounded-lg hover:scale-105 active:scale-95 transition-all duration-150">
             <RemoveFormattingIcon :size="12" /> Звичайний
           </button>
         </div>
 
+        <!-- Поле для посилання -->
         <div v-if="showLinkInput" class="flex gap-2 mb-1">
           <input
             ref="linkInputRef"
@@ -81,24 +92,65 @@
           </button>
         </div>
 
+        <!-- Tiptap редактор -->
         <div
-          ref="editorRef"
-          contenteditable="true"
-          data-placeholder="Текст повідомлення..."
-          class="form-input editor w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition min-h-[96px]"
-          :class="{ 'border-red-500': errors.text }"
-          @input="onEditorInput"
-          @keydown="onEditorKeydown"
-        />
+          :class="['form-input editor-wrapper w-full border rounded-lg px-3 py-2 text-sm transition min-h-[96px]',
+            errors.text ? 'border-red-500' : '',
+            editorFocused ? 'ring-2 ring-blue-400' : '']">
+          <EditorContent :editor="editor" />
+        </div>
         <p v-if="errors.text" class="text-red-500 text-xs mt-1">{{ errors.text }}</p>
       </div>
 
-      <div v-if="form.text || previewImageUrl"
-        class="preview-box border rounded-lg p-3 bg-gray-50 transition-colors duration-300 break-words">
-        <p class="text-xs text-gray-500 mb-2">Попередній перегляд:</p>
-        <div class="preview-text text-sm mb-2" v-html="sanitizedPreview" />
-        <img v-if="previewImageUrl" :src="previewImageUrl" alt="preview"
-          class="max-w-[200px] max-h-[150px] object-cover rounded-lg border shadow-sm mt-1" />
+      <!-- Попередній перегляд — як виглядатиме коментар у списку -->
+      <div v-if="htmlText || previewImageUrl" class="preview-card rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden transition-colors duration-300">
+        <!-- Шапка preview -->
+        <div class="preview-card__header flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+          <span class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Попередній перегляд</span>
+          <span class="text-xs text-gray-400 dark:text-gray-500 italic">так виглядатиме ваш коментар</span>
+        </div>
+        <!-- Тіло — імітація CommentItem -->
+        <div class="preview-card__body px-4 py-3 bg-white dark:bg-gray-900">
+          <div
+            class="border-l-4 border-blue-200 dark:border-blue-800 pl-4 py-3 rounded-r-lg
+                   hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-gray-700/50
+                   transition-all duration-200"
+          >
+            <!-- Шапка коментаря -->
+            <div class="flex items-start justify-between gap-2 mb-2">
+              <div class="flex items-center gap-3">
+                <!-- Аватар — точно як у CommentItem -->
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600
+                            flex items-center justify-center text-white font-bold text-xs shrink-0 select-none">
+                  {{ avatarLetter }}
+                </div>
+                <div>
+                  <a v-if="form.homepage" :href="form.homepage" target="_blank" rel="noopener noreferrer"
+                    class="username font-semibold text-gray-800 dark:text-gray-100 text-sm hover:underline transition-colors block">
+                    {{ form.user_name || 'User Name' }}
+                  </a>
+                  <span v-else class="username font-semibold text-gray-800 dark:text-gray-100 text-sm block">
+                    {{ form.user_name || 'User Name' }}
+                  </span>
+                  <span class="text-gray-400 dark:text-gray-500 text-xs">{{ previewDate }}</span>
+                </div>
+              </div>
+              <!-- Кнопка відповісти (декоративна) -->
+              <button type="button" disabled
+                class="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg border
+                       text-blue-600 border-blue-200 dark:border-blue-800 dark:text-blue-400
+                       opacity-60 cursor-default shrink-0">
+                ↩ Відповісти
+              </button>
+            </div>
+            <!-- Текст повідомлення -->
+            <div class="preview-text comment-text text-sm text-gray-700 dark:text-gray-200 mb-2 leading-relaxed break-words"
+              v-html="sanitizedPreview" />
+            <!-- Прикріплений файл — мініатюра як у CommentItem -->
+            <img v-if="previewImageUrl" :src="previewImageUrl" alt="preview"
+              class="thumbnail-img" />
+          </div>
+        </div>
       </div>
 
       <div>
@@ -131,8 +183,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, nextTick, computed } from 'vue'
-import DOMPurify, { type Config as DOMPurifyConfig } from 'dompurify'
+import { ref, computed, nextTick, onBeforeUnmount } from 'vue'
+import DOMPurify from 'dompurify'
+import { useEditor, EditorContent } from '@tiptap/vue-3'
+import StarterKit from '@tiptap/starter-kit'
+import { Link } from '@tiptap/extension-link'
 import {
   Italic as ItalicIcon,
   Bold as BoldIcon,
@@ -144,329 +199,170 @@ import {
 import CaptchaWidget from './CaptchaWidget.vue'
 import { createComment } from '../api/comments'
 
-// Дозволені теги для DOMPurify — тільки ті що дозволяє ТЗ
-const PURIFY_CONFIG: DOMPurifyConfig = {
-  ALLOWED_TAGS: ['a', 'code', 'i', 'strong'],
-  ALLOWED_ATTR: ['href', 'title'],
-}
+// ─── Константи ────────────────────────────────────────────────────────────────
+
+// Tiptap рендерить italic як <em>, bold як <strong>.
+// Додаємо обидва варіанти: і семантичні (em/strong) і ті що вимагає ТЗ (i/strong).
+// DOMPurify без 'em' вирізатиме курсив — звідси і була бага.
+const ALLOWED_TAGS = ['a', 'code', 'i', 'em', 'strong'] as const
+const ALLOWED_ATTR = ['href', 'title', 'target', 'rel'] as const
+
+// ─── Props / Emits ────────────────────────────────────────────────────────────
 
 const props = defineProps<{ parentId?: number | null }>()
 const emit = defineEmits<{ (e: 'submitted'): void; (e: 'cancel'): void }>()
 
-const form = ref({ user_name: '', email: '', homepage: '', text: '' })
+// ─── Стан форми ───────────────────────────────────────────────────────────────
+
+const form = ref({ user_name: '', email: '', homepage: '' })
 const errors = ref<Record<string, string>>({})
 const loading = ref(false)
 const selectedFile = ref<File | null>(null)
 const previewImageUrl = ref<string | null>(null)
 const captchaRef = ref<InstanceType<typeof CaptchaWidget> | null>(null)
-const editorRef = ref<HTMLDivElement | null>(null)
 const linkInputRef = ref<HTMLInputElement | null>(null)
 const showLinkInput = ref(false)
 const linkUrl = ref('')
+const editorFocused = ref(false)
 
-// Санітизований HTML для попереднього перегляду —
-// захищає від XSS при введенні шкідливих тегів у contenteditable
-const sanitizedPreview = computed(() =>
-  DOMPurify.sanitize(form.value.text, PURIFY_CONFIG)
+// ─── Preview: динамічні дані для шапки коментаря ─────────────────────────────
+
+const avatarLetter = computed(() =>
+  form.value.user_name ? form.value.user_name[0].toUpperCase() : '?'
 )
 
-const FORMAT_TAGS = ['i', 'strong', 'code', 'a']
+const previewDate = computed(() => {
+  const now = new Date()
+  return now.toLocaleString('uk-UA', {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  })
+})
 
-let lastEditorRange: Range | null = null
+// ─── Tiptap редактор ──────────────────────────────────────────────────────────
 
-const onSelectionChange = () => {
-  const editor = editorRef.value
-  if (!editor) return
-  const sel = window.getSelection()
-  if (!sel || sel.rangeCount === 0) return
-  const range = sel.getRangeAt(0)
-  if (editor.contains(range.commonAncestorContainer)) {
-    lastEditorRange = range.cloneRange()
-  }
-}
+const editor = useEditor({
+  extensions: [
+    StarterKit.configure({
+      heading: false,
+      blockquote: false,
+      bulletList: false,
+      orderedList: false,
+      listItem: false,
+      horizontalRule: false,
+      strike: false,
+      bold: { HTMLAttributes: {} },
+      italic: { HTMLAttributes: {} },
+      code: { HTMLAttributes: {} },
+    }),
+    Link.configure({
+      openOnClick: false,
+      HTMLAttributes: {
+        target: '_blank',
+        rel: 'noopener noreferrer',
+        title: '',
+      },
+    }),
+  ],
+  editorProps: {
+    attributes: {
+      class: 'tiptap-editor focus:outline-none min-h-[72px]',
+    },
+  },
+  onFocus() { editorFocused.value = true },
+  onBlur() { editorFocused.value = false },
+})
 
-const onDocPointerdown = () => {
-  const editor = editorRef.value
-  if (!editor) return
-  const sel = window.getSelection()
-  if (!sel || sel.rangeCount === 0) return
-  const range = sel.getRangeAt(0)
-  if (editor.contains(range.commonAncestorContainer)) {
-    lastEditorRange = range.cloneRange()
-  }
-}
+// ─── HTML з редактора ─────────────────────────────────────────────────────────
 
-onMounted(() => {
-  document.addEventListener('selectionchange', onSelectionChange)
-  document.addEventListener('pointerdown', onDocPointerdown, true) // capture!
-  // На мобільних touchend надійніше зберігає позицію курсора
-  document.addEventListener('touchend', onSelectionChange)
+const htmlText = computed((): string => {
+  if (!editor.value) return ''
+  const raw = editor.value.getHTML()
+  if (raw === '<p></p>') return ''
+  const doc = new DOMParser().parseFromString(raw, 'text/html')
+  const paragraphs = Array.from(doc.body.querySelectorAll('p'))
+  if (!paragraphs.length) return ''
+  return paragraphs.map(p => p.innerHTML).join('\n').trim()
+})
+
+const sanitizedPreview = computed((): string => {
+  const clean = DOMPurify.sanitize(htmlText.value, {
+    ALLOWED_TAGS: [...ALLOWED_TAGS],
+    ALLOWED_ATTR: [...ALLOWED_ATTR],
+  })
+  return clean.replace(/\n/g, '<br>')
 })
 
 onBeforeUnmount(() => {
-  document.removeEventListener('selectionchange', onSelectionChange)
-  document.removeEventListener('pointerdown', onDocPointerdown, true)
-  document.removeEventListener('touchend', onSelectionChange)
+  editor.value?.destroy()
+  revokePreview()
 })
 
-const getRange = (): Range | null => lastEditorRange
-
-const restoreRange = (range: Range) => {
-  const sel = window.getSelection()!
-  sel.removeAllRanges()
-  sel.addRange(range)
-}
-
-const isWrappedIn = (tag: string, range: Range): boolean => {
-  let node: Node | null = range.commonAncestorContainer
-  if (node.nodeType === Node.TEXT_NODE) node = node.parentElement
-  while (node && node !== editorRef.value) {
-    if ((node as Element).tagName?.toLowerCase() === tag) return true
-    node = (node as Element).parentElement
-  }
-  return false
-}
-
-const unwrapTag = (tag: string, range: Range) => {
-  const editor = editorRef.value!
-  let node: Node | null = range.commonAncestorContainer
-  if (node.nodeType === Node.TEXT_NODE) node = node.parentElement
-  while (node && node !== editor) {
-    if ((node as Element).tagName?.toLowerCase() === tag) {
-      const parent = node.parentNode!
-      let last: Node | null = null
-      while (node.firstChild) { last = node.firstChild; parent.insertBefore(node.firstChild, node) }
-      parent.removeChild(node)
-      if (last) {
-        const sel = window.getSelection()!
-        const r = document.createRange()
-        r.setStartAfter(last); r.collapse(true)
-        sel.removeAllRanges(); sel.addRange(r)
-      }
-      break
-    }
-    node = (node as Element).parentElement
-  }
-  form.value.text = editor.innerHTML
-}
-
-const applyTag = (tag: string) => {
-  const editor = editorRef.value
-  if (!editor) return
-  const range = getRange()
-  if (!range || range.collapsed) return
-
-  restoreRange(range)
-
-  if (isWrappedIn(tag, range)) {
-    unwrapTag(tag, range)
-    return
-  }
-
-  const el = document.createElement(tag)
-  try {
-    range.surroundContents(el)
-  } catch {
-    const frag = range.extractContents()
-    el.appendChild(frag)
-    range.insertNode(el)
-  }
-
-  // \u200B — zero-width space, надійно виштовхує курсор за межі тегу на мобільних
-  const after = document.createTextNode('\u200B')
-  el.after(after)
-  const sel = window.getSelection()!
-  const r = document.createRange()
-  r.setStart(after, 1); r.collapse(true)
-  sel.removeAllRanges(); sel.addRange(r)
-
-  form.value.text = editor.innerHTML
-}
-
-// ─── Зняти ВСЕ форматування (Оновлена стабільна версія) ───────────────────────
-const clearFormat = () => {
-  const editor = editorRef.value
-  if (!editor) return
-  const saved = getRange()
-  if (!saved) return
-
-  const range = saved.cloneRange()
-  restoreRange(range)
-
-  // 1. Якщо є виділений текст: дістаємо його вміст як plain text, видаляючи внутрішні теги
-  if (!range.collapsed) {
-    const frag = range.extractContents()
-    const plainText = frag.textContent || ''
-    const plainNode = document.createTextNode(plainText.replace(/\u200B/g, ''))
-    range.insertNode(plainNode)
-    
-    // Згортаємо range одразу після вставленого чистого тексту
-    range.setStartAfter(plainNode)
-    range.collapse(true)
-  }
-
-  // 2. Незалежно від наявності виділення: йдемо вгору і розгортаємо всі батьківські форматні теги
-  let node: Node | null = range.commonAncestorContainer
-  if (node.nodeType === Node.TEXT_NODE) node = node.parentElement
-
-  while (node && node !== editor) {
-    const tag = (node as Element).tagName?.toLowerCase()
-    if (FORMAT_TAGS.includes(tag)) {
-      const parent = node.parentNode!
-      const nextNode: Node | null = node.parentElement
-      
-      while (node.firstChild) { 
-        parent.insertBefore(node.firstChild, node) 
-      }
-      parent.removeChild(node)
-      
-      node = nextNode
-      continue
-    }
-    node = (node as Element).parentElement
-  }
-
-  // 3. Підчищаємо випадкові порожні теги, що могли залишитися
-  FORMAT_TAGS.forEach(tag => {
-    editor.querySelectorAll(tag).forEach(el => {
-      if (!(el.textContent || '').replace(/\u200B/g, '').trim()) {
-        el.parentNode?.removeChild(el)
-      }
-    })
-  })
-
-  editor.normalize()
-
-  // Повертаємо курсор користувачу у правильну позицію
-  const sel = window.getSelection()!
-  sel.removeAllRanges()
-  sel.addRange(range)
-
-  form.value.text = editor.innerHTML
-}
-
-// ─── Keydown: вихід з форматованого тегу при наборі в кінці ──────────────────
-const getLastTextNode = (el: Node): Node => {
-  if (el.nodeType === Node.TEXT_NODE) return el
-  let last: Node = el
-  el.childNodes.forEach(child => { last = getLastTextNode(child) })
-  return last
-}
-
-const onEditorKeydown = (e: KeyboardEvent) => {
-  if (e.ctrlKey || e.metaKey || e.altKey) return
-  if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End',
-       'Tab','Escape','Enter','Backspace','Delete'].includes(e.key)) return
-  if (e.key.length !== 1) return
-
-  const sel = window.getSelection()
-  if (!sel || sel.rangeCount === 0) return
-  const range = sel.getRangeAt(0)
-  if (!range.collapsed) return
-
-  const editor = editorRef.value!
-  let n: Node | null = range.startContainer
-  if (n.nodeType === Node.TEXT_NODE) n = n.parentElement
-  let formatEl: Element | null = null
-  while (n && n !== editor) {
-    if (FORMAT_TAGS.includes((n as Element).tagName?.toLowerCase())) { formatEl = n as Element; break }
-    n = (n as Element).parentElement
-  }
-  if (!formatEl) return
-
-  const atEnd = range.startContainer === getLastTextNode(formatEl)
-    && range.startOffset === (range.startContainer.textContent?.length ?? 0)
-  if (!atEnd) return
-
-  e.preventDefault()
-  const textNode = document.createTextNode(e.key)
-  formatEl.after(textNode)
-  const r = document.createRange()
-  r.setStart(textNode, 1); r.collapse(true)
-  sel.removeAllRanges(); sel.addRange(r)
-  form.value.text = editor.innerHTML
-}
-
 // ─── Посилання ────────────────────────────────────────────────────────────────
-let savedLinkRange: Range | null = null
 
 const openLinkPanel = () => {
-  savedLinkRange = getRange()?.cloneRange() ?? null
   showLinkInput.value = true
-  linkUrl.value = ''
+  linkUrl.value = editor.value?.isActive('link')
+    ? (editor.value.getAttributes('link').href as string) || ''
+    : ''
   nextTick(() => linkInputRef.value?.focus())
 }
 
 const closeLinkPanel = () => {
   showLinkInput.value = false
-  savedLinkRange = null
   linkUrl.value = ''
 }
 
 const applyLink = () => {
-  const editor = editorRef.value
-  if (!editor) return
   const url = linkUrl.value.trim()
-  if (!url) return
-
-  const range = savedLinkRange
-  if (!range) { closeLinkPanel(); return }
-  restoreRange(range)
-
-  const liveRange = window.getSelection()!.getRangeAt(0)
-  const a = document.createElement('a')
-  a.href = url; a.title = url
-
-  if (!liveRange.collapsed) {
-    try { liveRange.surroundContents(a) }
-    catch { const frag = liveRange.extractContents(); a.appendChild(frag); liveRange.insertNode(a) }
-  } else {
-    a.textContent = url
-    liveRange.insertNode(a)
-  }
-
-  const after = document.createTextNode('')
-  a.after(after)
-  const sel = window.getSelection()!
-  const r = document.createRange()
-  r.setStart(after, 0); r.collapse(true)
-  sel.removeAllRanges(); sel.addRange(r)
-
-  form.value.text = editor.innerHTML
+  if (!url) { closeLinkPanel(); return }
+  editor.value?.chain().focus().setLink({ href: url, title: url }).run()
   closeLinkPanel()
 }
 
-// ─── Input ────────────────────────────────────────────────────────────────────
-const onEditorInput = () => {
-  form.value.text = editorRef.value?.innerHTML || ''
+// ─── Зняти форматування ───────────────────────────────────────────────────────
+
+const clearFormat = () => {
+  editor.value?.chain().focus().unsetLink().unsetAllMarks().run()
 }
 
 // ─── Файл ─────────────────────────────────────────────────────────────────────
+
+const revokePreview = () => {
+  if (previewImageUrl.value) {
+    URL.revokeObjectURL(previewImageUrl.value)
+    previewImageUrl.value = null
+  }
+}
+
 const onFileChange = (e: Event) => {
-  const file = (e.target as HTMLInputElement).files?.[0] || null
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0] ?? null
   errors.value.attached_file = ''
-  if (previewImageUrl.value) URL.revokeObjectURL(previewImageUrl.value)
-  previewImageUrl.value = null
-  if (!file) return
-  const ext = file.name.split('.').pop()?.toLowerCase()
-  if (!['jpg', 'jpeg', 'png', 'gif', 'txt'].includes(ext || '')) {
+  revokePreview()
+  if (!file) { selectedFile.value = null; return }
+  const ext = file.name.split('.').pop()?.toLowerCase() ?? ''
+  if (!['jpg', 'jpeg', 'png', 'gif', 'txt'].includes(ext)) {
     errors.value.attached_file = 'Дозволені лише JPG, PNG, GIF, TXT'
     selectedFile.value = null
+    input.value = ''
     return
   }
   if (ext === 'txt' && file.size > 100 * 1024) {
     errors.value.attached_file = 'TXT файл не може перевищувати 100 КБ'
     selectedFile.value = null
+    input.value = ''
     return
   }
   selectedFile.value = file
-  if (['jpg', 'jpeg', 'png', 'gif'].includes(ext || '')) {
+  if (['jpg', 'jpeg', 'png', 'gif'].includes(ext)) {
     previewImageUrl.value = URL.createObjectURL(file)
   }
 }
 
-// ─── Валідація і відправка ────────────────────────────────────────────────────
-const validate = () => {
+// ─── Валідація ────────────────────────────────────────────────────────────────
+
+const validate = (): boolean => {
   errors.value = {}
   if (!form.value.user_name) {
     errors.value.user_name = "Обов'язкове поле"
@@ -481,9 +377,20 @@ const validate = () => {
   if (form.value.homepage && !/^https?:\/\/.+/.test(form.value.homepage)) {
     errors.value.homepage = 'Невірний формат URL (має починатись з http:// або https://)'
   }
-  const plainText = form.value.text.replace(/<[^>]*>/g, '').replace(/\u200B/g, '').trim()
-  if (!plainText) errors.value.text = "Обов'язкове поле"
+  if (!htmlText.value.trim()) {
+    errors.value.text = "Обов'язкове поле"
+  }
   return Object.keys(errors.value).length === 0
+}
+
+// ─── Відправка ────────────────────────────────────────────────────────────────
+
+const resetForm = () => {
+  form.value = { user_name: '', email: '', homepage: '' }
+  editor.value?.commands.clearContent()
+  selectedFile.value = null
+  revokePreview()
+  captchaRef.value?.refresh()
 }
 
 const submit = async () => {
@@ -498,28 +405,26 @@ const submit = async () => {
   formData.append('user_name', form.value.user_name)
   formData.append('email', form.value.email)
   if (form.value.homepage) formData.append('homepage', form.value.homepage)
-  formData.append('text', form.value.text.replace(/\u200B/g, ''))
+  formData.append('text', htmlText.value)
   formData.append('captcha_key', captchaData.captcha_key)
   formData.append('captcha_value', captchaData.captcha_value)
   if (props.parentId) formData.append('parent', String(props.parentId))
   if (selectedFile.value) formData.append('attached_file', selectedFile.value)
   try {
     await createComment(formData)
-    form.value = { user_name: '', email: '', homepage: '', text: '' }
-    if (editorRef.value) editorRef.value.innerHTML = ''
-    selectedFile.value = null
-    previewImageUrl.value = null
-    captchaRef.value?.refresh()
+    resetForm()
     emit('submitted')
-  } catch (err: any) {
-    const data = err.response?.data
+  } catch (err: unknown) {
+    const data = (err as { response?: { data?: Record<string, string[]> } })?.response?.data
     if (data) {
-      if (data.captcha_value) captchaRef.value?.setError(data.captcha_value[0])
-      if (data.captcha_key) captchaRef.value?.setError(data.captcha_key[0])
-      if (data.user_name) errors.value.user_name = data.user_name[0]
-      if (data.email) errors.value.email = data.email[0]
-      if (data.text) errors.value.text = data.text[0]
-      if (data.attached_file) errors.value.attached_file = data.attached_file[0]
+      if (data.captcha_value?.[0]) captchaRef.value?.setError(data.captcha_value[0])
+      if (data.captcha_key?.[0]) captchaRef.value?.setError(data.captcha_key[0])
+      if (data.user_name?.[0]) errors.value.user_name = data.user_name[0]
+      if (data.email?.[0]) errors.value.email = data.email[0]
+      if (data.text?.[0]) errors.value.text = data.text[0]
+      if (data.attached_file?.[0]) errors.value.attached_file = data.attached_file[0]
+    } else {
+      console.error('[CommentForm] submit error:', err)
     }
     captchaRef.value?.refresh()
   } finally {
@@ -529,12 +434,86 @@ const submit = async () => {
 </script>
 
 <style scoped>
-.editor:empty::before {
-  content: attr(data-placeholder);
+.editor-wrapper {
+  box-sizing: border-box;
+}
+
+.editor-wrapper :deep(.tiptap-editor) {
+  outline: none;
+}
+
+.editor-wrapper :deep(.tiptap-editor p) {
+  margin: 0;
+  padding: 0;
+  line-height: 1.5;
+}
+
+.editor-wrapper :deep(.tiptap-editor p + p) {
+  margin-top: 0.5em;
+}
+
+.editor-wrapper :deep(.tiptap-editor p.is-editor-empty:first-child::before) {
+  content: 'Текст повідомлення...';
   color: #9ca3af;
   pointer-events: none;
+  float: left;
+  height: 0;
 }
-.editor:focus {
-  outline: none;
+
+.editor-wrapper :deep(.tiptap-editor strong) { font-weight: 700; }
+.editor-wrapper :deep(.tiptap-editor em)     { font-style: italic; }
+
+.editor-wrapper :deep(.tiptap-editor code) {
+  background: #dbeafe;
+  color: #1e40af;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.85em;
+  border: 1px solid #bfdbfe;
+}
+
+.editor-wrapper :deep(.tiptap-editor a) {
+  color: #2563eb;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ─── Preview card ─── */
+.preview-card {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+/* ─── Стилі тексту коментаря — ідентичні CommentItem ─── */
+.preview-text :deep(a)       { color: #2563eb; text-decoration: underline; }
+.preview-text :deep(a:hover) { color: #1d4ed8; }
+.preview-text :deep(strong)  { font-weight: 700; }
+.preview-text :deep(em),
+.preview-text :deep(i)       { font-style: italic; }
+.preview-text :deep(code) {
+  background: #dbeafe;
+  color: #1e40af;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.85em;
+  border: 1px solid #bfdbfe;
+}
+
+/* Dark mode — через :global(.dark) бо Tailwind dark: не працює на :deep */
+:global(.dark) .preview-text :deep(a)    { color: #60a5fa; }
+:global(.dark) .preview-text :deep(code) {
+  background: #1e3a5f;
+  color: #93c5fd;
+  border-color: #2563eb;
+}
+
+/* Мініатюра — ідентична CommentItem */
+.thumbnail-img {
+  max-width: 80px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  cursor: default;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 </style>
