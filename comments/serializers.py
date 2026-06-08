@@ -5,7 +5,7 @@ from captcha.models import CaptchaStore
 from django.core.exceptions import ValidationError as DjangoValidationError
 
 
-# Дозволені теги згідно з ТЗ: <a href="" title=""></a> <code></code> <i></i> <strong></strong>
+
 ALLOWED_TAG_PATTERNS = [
     r'^<a(\s+(href|title)="[^"]*"){1,2}>$',
     r'^</a>$',

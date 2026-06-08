@@ -204,7 +204,7 @@ import { createComment } from '../api/comments'
 
 // Tiptap за замовчуванням рендерить italic як <em>.
 // По ТЗ дозволений лише <i> — перевизначаємо через CustomItalic.
-// DOMPurify: 'em' більше не потрібен, але залишаємо для parseHTML (вхідний HTML може містити <em>).
+
 const ALLOWED_TAGS = ['a', 'code', 'i', 'strong'] as const
 const ALLOWED_ATTR = ['href', 'title', 'target', 'rel'] as const
 
@@ -270,11 +270,11 @@ const editor = useEditor({
     CustomItalic,            // ← наш italic що генерує <i>
     Link.configure({
       openOnClick: false,
-      autolink: false,        // ← додай
+      autolink: false,        
       HTMLAttributes: {
         title: '',
-        target: null,         // ← прибирає target="_blank"
-        rel: null,            // ← прибирає rel="noopener..."
+        target: null,         
+        rel: null,            
       },
     }),
   ],

@@ -75,13 +75,10 @@ class Comment(models.Model):
         ordering = ['-created_at']
 
     def save(self, *args, **kwargs):
-        # full_clean() навмисно не викликається тут —
-        # уся валідація відбувається в серіалізаторі до збереження.
-        # Виклик full_clean() тут призводив би до помилки:
-        # attached_file.path недоступний поки файл не збережений на диск.
+
         super().save(*args, **kwargs)
 
-        # Після збереження файл вже на диску — можна безпечно відкрити його
+
         if self.attached_file:
             resize_image_if_needed(self.attached_file.path)
 
