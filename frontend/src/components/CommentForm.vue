@@ -188,6 +188,7 @@ import DOMPurify from 'dompurify'
 import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import { Link } from '@tiptap/extension-link'
+import Italic from '@tiptap/extension-italic'
 import {
   Italic as ItalicIcon,
   Bold as BoldIcon,
@@ -201,11 +202,22 @@ import { createComment } from '../api/comments'
 
 // ─── Константи ────────────────────────────────────────────────────────────────
 
-// Tiptap рендерить italic як <em>, bold як <strong>.
-// Додаємо обидва варіанти: і семантичні (em/strong) і ті що вимагає ТЗ (i/strong).
-// DOMPurify без 'em' вирізатиме курсив — звідси і була бага.
-const ALLOWED_TAGS = ['a', 'code', 'i', 'em', 'strong'] as const
+// Tiptap за замовчуванням рендерить italic як <em>.
+// По ТЗ дозволений лише <i> — перевизначаємо через CustomItalic.
+// DOMPurify: 'em' більше не потрібен, але залишаємо для parseHTML (вхідний HTML може містити <em>).
+const ALLOWED_TAGS = ['a', 'code', 'i', 'strong'] as const
 const ALLOWED_ATTR = ['href', 'title', 'target', 'rel'] as const
+
+// ─── CustomItalic — рендерить <i> замість <em> (вимога ТЗ) ───────────────────
+
+const CustomItalic = Italic.extend({
+  parseHTML() {
+    return [{ tag: 'i' }, { tag: 'em' }]  // читає обидва, але рендерить <i>
+  },
+  renderHTML({ HTMLAttributes }) {
+    return ['i', HTMLAttributes, 0]
+  },
+})
 
 // ─── Props / Emits ────────────────────────────────────────────────────────────
 
@@ -251,10 +263,11 @@ const editor = useEditor({
       listItem: false,
       horizontalRule: false,
       strike: false,
+      italic: false,         // ← вимикаємо дефолтний italic (він генерує <em>)
       bold: { HTMLAttributes: {} },
-      italic: { HTMLAttributes: {} },
       code: { HTMLAttributes: {} },
     }),
+    CustomItalic,            // ← наш italic що генерує <i>
     Link.configure({
       openOnClick: false,
       HTMLAttributes: {

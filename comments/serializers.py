@@ -13,8 +13,6 @@ ALLOWED_TAG_PATTERNS = [
     r'^</code>$',
     r'^<i>$',
     r'^</i>$',
-    r'^<em>$',       # ← додати
-    r'^</em>$',      # ← додати
     r'^<strong>$',
     r'^</strong>$',
 ]
@@ -34,7 +32,7 @@ def validate_html_tags(value):
 
     # Перевірка парності тегів (валідний XHTML)
     stack = []
-    paired = {'a', 'code', 'i', 'em', 'strong'}
+    paired = {'a', 'code', 'i', 'strong'}
     open_tag_re = re.compile(r'^<([a-z]+)[\s>]')
     close_tag_re = re.compile(r'^</([a-z]+)>')
 
