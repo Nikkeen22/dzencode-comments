@@ -199,11 +199,14 @@ const onDocPointerdown = () => {
 onMounted(() => {
   document.addEventListener('selectionchange', onSelectionChange)
   document.addEventListener('pointerdown', onDocPointerdown, true) // capture!
+  // На мобільних touchend надійніше зберігає позицію курсора
+  document.addEventListener('touchend', onSelectionChange)
 })
 
 onBeforeUnmount(() => {
   document.removeEventListener('selectionchange', onSelectionChange)
   document.removeEventListener('pointerdown', onDocPointerdown, true)
+  document.removeEventListener('touchend', onSelectionChange)
 })
 
 const getRange = (): Range | null => lastEditorRange
@@ -269,11 +272,12 @@ const applyTag = (tag: string) => {
     range.insertNode(el)
   }
 
-  const after = document.createTextNode('')
+  // \u200B — zero-width space, надійно виштовхує курсор за межі тегу на мобільних
+  const after = document.createTextNode('\u200B')
   el.after(after)
   const sel = window.getSelection()!
   const r = document.createRange()
-  r.setStart(after, 0); r.collapse(true)
+  r.setStart(after, 1); r.collapse(true)
   sel.removeAllRanges(); sel.addRange(r)
 
   form.value.text = editor.innerHTML
